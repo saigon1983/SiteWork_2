@@ -69,6 +69,57 @@ class SKUList:
         for item in newData:
             self.articleArray.append(item.article)
         self.setupListType()
+    def remove(self, item):
+        # Метод удаления указанного элемента из набора
+        if type(item) != SKU: raise TypeError('Аргумент метода remove() должен быть экземпляром SKU, а получен {}'.format(type(item)))
+        try:    self.array.remove(item)
+        except: raise ValueError('В наборе нет элемента {}!'.format(item))
+        self.setupArticleArray()
+        # Производим пересмотр типа набора, если удаленный элемент не соответствовал этому типу
+        if item.productGroup[2] != self.type: self.setupListType()
+    def removeByArticle(self, article):
+        # Метод удаляет из набора элемент с заданным артикулом
+        if type(article) != str: raise TypeError('Артикул, передаваемый в метод removeByArticle() должен быть строкой, а получен {}'.format(type(article)))
+        try:
+            index = self.articleArray.index(article)
+            item = self.array[index]
+            if item.article == article: self.array.remove(item)
+            else: raise ValueError('SKU в позиции {} имеет артикул "{}", отличный от ожидаемого "{}".'.format(index, item.article, article))
+        except:
+            raise ValueError('Позиции с артикулом {} в наборе нет.'.format(article))
+        self.setupArticleArray()
+        self.setupListType()
+    def removeAllByBrand(self, brand):
+        # Метод удаляет из набора все SKU указанного бренда
+        needCheckType = False   # Грязный флаг необходимости перепроверки типа набора
+        itemsToRemove = []      # Список SKU на удаление
+        for item in self.array:
+            if item.brand.upper() == brand.upper(): itemsToRemove.append(item)
+        for item in itemsToRemove:
+            if item.productGroups[2] != self.type: needCheckType = True
+            self.array.remove(item)
+        self.setupArticleArray()
+        if needCheckType: self.setupListType()  # Перепроверяем тип набора при необходимости
+    def removeAllByBrands(self, *brands):
+        # Метод удаляет из набора все SKU указанных брендов
+        needCheckType = False                       # Грязный флаг необходимости перепроверки типа набора
+        brands = [brand.upper() for brand in brands]# переводим все бренды в верхний регистр
+        itemsToRemove = []                          # Список SKU на удаление
+        for item in self.array:
+            if item.brand.upper() in brands: itemsToRemove.append(item)
+        for item in itemsToRemove:
+            if item.productGroups[2] != self.type: needCheckType = True
+            self.array.remove(item)
+        self.setupArticleArray()
+        if needCheckType: self.setupListType()      # Перепроверяем тип набора при необходимости
+    def removeDuplicates(self):
+        # Метод удаляет все дубликаты из набора
+        newArray = []
+        for item in self.array:
+            if item not in newArray: newArray.append(item)
+        self.array = newArray
+        self.setupArticleArray()
+        self.setupListType()
 # ========== Перегруженные методы ==========
     def __str__(self):
         # Метод строкового представления объекта списка товаров
