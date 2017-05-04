@@ -129,18 +129,20 @@ class SKUList:
 # ========== Методы получения элементов и выборок ==========
     def splitToHomogenouses(self):
         # Метод разделяет текущий список на несколько гомогенных (по ТГ2) списков и возвращает словарь списков
-        resultDict = {}
-        resultDict['Прочее'] = SKUList()
+        resultDict = {}                 # Итоговый словарь
+        resultDict['Прочее'] = SKUList()# Ссылка на некорректные элементы
         for item in self.array:
+            # Настраиваем корректное написание ТГ2
             PG = item.productGroups[2]
             if item.productGroups[1] == 'Встраиваемая техника': PG += ' ВСТР'
+            # Распределяем товары по категориям
             if PG:
                 if PG not in resultDict.keys():
                     resultDict[PG] = SKUList()
                 resultDict[PG].append(item)
             else:
                 resultDict['Прочее'].append(item)
-        return resultDict
+        return resultDict               # Возвращаем результат
 # ========== Методы сохранения набора ==========
     def __setMainInfo(self, sheet):
         # Вспомогательная функция записывает в таблицу основную информацию о приборах

@@ -1,10 +1,8 @@
-from Libs.Logic.function_bitrixParser import parseBitrixData
-from Libs.Logic.class_SKU import SKU
-from Libs.Logic.class_SKUList import SKUList
-from Libs.Logic.class_Database import Database
+from Libs.Logic.function_getSKUListsFromBitrixData import *
 
-someData = parseBitrixData('Input\\no_properties.txt')
-
-newDatabase = Database.constructDatabase()
-newDict = newDatabase.splitToHomogenouses()
-newDatabase.saveToSimpleTable('testtable')
+newLists = getSKUListsFromBitrixData('Input\\no_properties.txt')
+for someList in newLists.values():
+    if someList.type:
+        someList.saveToDetailedTable(someList.type)
+    else:
+        print(someList)

@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from Libs.Logic.constants import AVAILABLE_BRANDS, CAPS_BRANDS, VALID_ARTICLE_SYMBOLS, RUS_TO_LAT, PROPERTIES_DATA
 from Libs.Logic.function_fixBrands import fixBrandNames
+from Libs.Logic.function_detectPGs import detectPG
 
 class SKU:
 
@@ -84,6 +85,26 @@ class SKU:
         # Метод установки свойств (характеристик) продуктов
         if self.properties:
             for key in self.properties.keys(): self.properties[key] = properties[key]
+    def setupProductGroupsFromDatabase(self, database):
+        # Метод установки корректных товарных групп на основе какой-либо базы данных database
+        changed = False
+        for someSKU in database:
+            if someSKU.article == self.article:
+                changed = True
+                for key, value in someSKU.productGroups.items():
+                    self.productGroups[key] = value
+        if changed: self.initProperties()
+    def setupProductGroupsFromInput(self):
+        # Метод ручной настройки товарных групп (1й и 2й) путем ручного выбора из предлагаемых вариантов
+        if not self.productGroups[1] or not self.productGroups[2]:
+            self.productGroups[1], self.productGroups[2] = detectPG(self)
+        self.initProperties()
+    def setupPropertiesFromDatabase(self, database):
+        # Метод установки свойств из базы данных database
+        for someSKU in database:
+            if someSKU.article == self.article:
+                self.setupProperties(someSKU.properties)
+
 # ========== Методы доступа к атрибутам объекта ==========
     def getName(self):
         # Метод возвращает традиционное написание продукта в виде <Тип продукта Бренд Модель>
