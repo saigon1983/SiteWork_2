@@ -1,11 +1,13 @@
 # Класс SKUList представляет из себя набор SKU с методами выборки элементов, сравнения наборов, установки свойств
 # для всех элементов набора и сохранения наборов в таблицы Excel
 import openpyxl
+from openpyxl.utils import get_column_letter as colLetter
 from collections import OrderedDict
 from Libs.Logic.constants import IGNORE_HEADERS, GROUPS_TREE, USED_HEADERS, PROPERTIES_DATA
 from Libs.Logic.class_SKU import SKU
 
 class SKUList:
+    BASIC_TABLE_HEADERS = ('Артикул','Тип прибора','Бренд','Модель','Товарная Группа 1','Товарная Группа 2','Товарная Группа 3','Товарная Группа 4','Товарная Группа 5')
     def __init__(self, someList = None):
         # Конструктор принимает в качестве аргумента список или кортеж. Если аргумент явно не передается, создается пустой
         # экземпляр, который в последствии может быть заполнен методом append
@@ -23,6 +25,7 @@ class SKUList:
         for sku in self.array:  self.articleArray.append(sku.article)
     def setupListType(self):
         # Метод утановки типа списка. Для гомогенных списков тип равен наименованию ТГ2, для остальных - Смешанный
+        self.propertyFields = []
         if self.isHomogenous() and self.firstItem():
             type_1 = self.firstItem().productGroups[1]
             type_2 = self.firstItem().productGroups[2]
@@ -31,6 +34,8 @@ class SKUList:
             if type_1.lower() == 'встраиваемая техника':
                 type_2 += ' ВСТР'
             self.type = type_2
+            for property in self.firstItem().properties:
+                self.propertyFields.append(property)
         else:
             self.type = 'Смешанный'
     def firstItem(self):
@@ -52,6 +57,7 @@ class SKUList:
         if type(someData) == SKU:
             self.array.append(someData)
             self.articleArray.append(someData.article)
+            self.setupListType()
             return
         elif type(someData) == SKUList:
             newData = someData.array[:]
@@ -120,6 +126,69 @@ class SKUList:
         self.array = newArray
         self.setupArticleArray()
         self.setupListType()
+# ========== Методы получения элементов и выборок ==========
+    def splitToHomogenouses(self):
+        # Метод разделяет текущий список на несколько гомогенных (по ТГ2) списков и возвращает словарь списков
+        resultDict = {}
+        resultDict['Прочее'] = SKUList()
+        for item in self.array:
+            PG = item.productGroups[2]
+            if item.productGroups[1] == 'Встраиваемая техника': PG += ' ВСТР'
+            if PG:
+                if PG not in resultDict.keys():
+                    resultDict[PG] = SKUList()
+                resultDict[PG].append(item)
+            else:
+                resultDict['Прочее'].append(item)
+        return resultDict
+# ========== Методы сохранения набора ==========
+    def saveToSimpleTable(self, filename):
+        # Метод сохраняет в Excel-таблицу поверхностные данные SKU из набора. Подходит для смешанных наборов
+        excelFile = openpyxl.Workbook()
+        currentSheet = excelFile.active
+        currentSheet.title = 'Список товаров'
+        for i in range(len(SKUList.BASIC_TABLE_HEADERS)):
+            currentSheet['{}1'.format(openpyxl.utils.get_column_letter(i+1))] = SKUList.BASIC_TABLE_HEADERS[i]
+        for item in self.array:
+            currentSheet['A{}'.format(self.array.index(item)+2)] = item.article
+            currentSheet['B{}'.format(self.array.index(item)+2)] = item.genus
+            currentSheet['C{}'.format(self.array.index(item)+2)] = item.brand
+            currentSheet['D{}'.format(self.array.index(item)+2)] = item.model
+            currentSheet['E{}'.format(self.array.index(item)+2)] = item.productGroups[1]
+            currentSheet['F{}'.format(self.array.index(item)+2)] = item.productGroups[2]
+            currentSheet['G{}'.format(self.array.index(item)+2)] = item.productGroups[3]
+            currentSheet['H{}'.format(self.array.index(item)+2)] = item.productGroups[4]
+            currentSheet['I{}'.format(self.array.index(item)+2)] = item.productGroups[5]
+        excelFile.save('Output\\' + filename + '.xlsx')
+    def saveToDetailedTable(self, filename):
+        # Метод создает подробную таблицу со всеми данными о SKU. Работает только с гомогенными наборами
+        if not self.isHomogenous(): raise TypeError('Для сохранения в подробную таблицу набор должен быть гомогенным!')
+        excelFile = openpyxl.Workbook()
+        currentSheet = excelFile.active
+        currentSheet.title = self.type
+        for i in range(len(SKUList.BASIC_TABLE_HEADERS)):
+            currentSheet['{}1'.format(openpyxl.utils.get_column_letter(i+1))] = SKUList.BASIC_TABLE_HEADERS[i]
+        i = 0
+        for property in self.propertyFields:
+            i += 1
+            currentSheet['{}1'.format(openpyxl.utils.get_column_letter(len(SKUList.BASIC_TABLE_HEADERS) + i))] = property
+        for item in self.array:
+            number = self.array.index(item)+2
+            currentSheet['A{}'.format(number)] = item.article
+            currentSheet['B{}'.format(number)] = item.genus
+            currentSheet['C{}'.format(number)] = item.brand
+            currentSheet['D{}'.format(number)] = item.model
+            currentSheet['E{}'.format(number)] = item.productGroups[1]
+            currentSheet['F{}'.format(number)] = item.productGroups[2]
+            currentSheet['G{}'.format(number)] = item.productGroups[3]
+            currentSheet['H{}'.format(number)] = item.productGroups[4]
+            currentSheet['I{}'.format(number)] = item.productGroups[5]
+            letter = len(SKUList.BASIC_TABLE_HEADERS)
+            for property in self.propertyFields:
+                letter += 1
+                currentSheet['{}{}'.format(colLetter(letter), number)] = item.properties[property]
+        excelFile.save('Output\\' + filename + '.xlsx')
+
 # ========== Перегруженные методы ==========
     def __str__(self):
         # Метод строкового представления объекта списка товаров
