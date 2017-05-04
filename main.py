@@ -7,7 +7,4 @@ someData = parseBitrixData('Input\\no_properties.txt')
 
 newDatabase = Database.constructDatabase()
 newDict = newDatabase.splitToHomogenouses()
-#newDatabase.saveToSimpleTable('testtable')
-
-for skulist in newDict.values():
-    skulist.saveToDetailedTable(skulist.type)
+newDatabase.saveToSimpleTable('testtable')

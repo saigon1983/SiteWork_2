@@ -1,6 +1,6 @@
 # Класс SKU является виртуальным представлением единицы товара
 from collections import OrderedDict
-from Libs.Logic.constants import AVAILABLE_BRANDS, CAPS_BRANDS, VALID_ARTICLE_SYMBOLS, RUS_TO_LAT
+from Libs.Logic.constants import AVAILABLE_BRANDS, CAPS_BRANDS, VALID_ARTICLE_SYMBOLS, RUS_TO_LAT, PROPERTIES_DATA
 from Libs.Logic.function_fixBrands import fixBrandNames
 
 class SKU:
@@ -67,12 +67,23 @@ class SKU:
         try:    self.productGroups[5] = productGroups[5].lower()
         except: self.productGroups[5] = ''
         # TODO: Продолжить автозаполнение товарных групп методами выбора из базы данных и ручного ввода
+        self.initProperties()
+    def initProperties(self):
+        # Метод инициализации типов свойств. Задает ключи с пустыми значениями, соответствующими товарной группе
+        self.properties = OrderedDict()
+        if self.productGroups[1] and self.productGroups[2]:
+            key = self.productGroups[2]
+            if self.productGroups[1] == 'Встраиваемая техника': key += ' ВСТР'
+            for value in PROPERTIES_DATA[key].values():
+                if type(value) == str:
+                    self.properties[value] = ''
+                else:
+                    for subvalue in value:
+                        self.properties[subvalue] = ''
     def setupProperties(self, properties):
         # Метод установки свойств (характеристик) продуктов
-        self.properties = OrderedDict()
-        for key, value in properties.items():
-            if type(value) == str:  self.properties[key] = value.strip()
-            else:                   self.properties[key] = value
+        if self.properties:
+            for key in self.properties.keys(): self.properties[key] = properties[key]
 # ========== Методы доступа к атрибутам объекта ==========
     def getName(self):
         # Метод возвращает традиционное написание продукта в виде <Тип продукта Бренд Модель>

@@ -142,53 +142,49 @@ class SKUList:
                 resultDict['Прочее'].append(item)
         return resultDict
 # ========== Методы сохранения набора ==========
+    def __setMainInfo(self, sheet):
+        # Вспомогательная функция записывает в таблицу основную информацию о приборах
+        # Проставляем заголовки
+        for i in range(len(SKUList.BASIC_TABLE_HEADERS)):
+            sheet['{}1'.format(colLetter(i+1))] = SKUList.BASIC_TABLE_HEADERS[i]
+        for item in self.array:
+            number = self.array.index(item)+2                   # Номер текущей строки
+            sheet['A{}'.format(number)] = item.article          # Артикул
+            sheet['B{}'.format(number)] = item.genus            # Тип прибора
+            sheet['C{}'.format(number)] = item.brand            # Бренд
+            sheet['D{}'.format(number)] = item.model            # Модель
+            sheet['E{}'.format(number)] = item.productGroups[1] # ТГ1
+            sheet['F{}'.format(number)] = item.productGroups[2] # ТГ2
+            sheet['G{}'.format(number)] = item.productGroups[3] # ТГ3
+            sheet['H{}'.format(number)] = item.productGroups[4] # ТГ4
+            sheet['I{}'.format(number)] = item.productGroups[5] # ТГ5
     def saveToSimpleTable(self, filename):
         # Метод сохраняет в Excel-таблицу поверхностные данные SKU из набора. Подходит для смешанных наборов
-        excelFile = openpyxl.Workbook()
-        currentSheet = excelFile.active
-        currentSheet.title = 'Список товаров'
-        for i in range(len(SKUList.BASIC_TABLE_HEADERS)):
-            currentSheet['{}1'.format(openpyxl.utils.get_column_letter(i+1))] = SKUList.BASIC_TABLE_HEADERS[i]
-        for item in self.array:
-            currentSheet['A{}'.format(self.array.index(item)+2)] = item.article
-            currentSheet['B{}'.format(self.array.index(item)+2)] = item.genus
-            currentSheet['C{}'.format(self.array.index(item)+2)] = item.brand
-            currentSheet['D{}'.format(self.array.index(item)+2)] = item.model
-            currentSheet['E{}'.format(self.array.index(item)+2)] = item.productGroups[1]
-            currentSheet['F{}'.format(self.array.index(item)+2)] = item.productGroups[2]
-            currentSheet['G{}'.format(self.array.index(item)+2)] = item.productGroups[3]
-            currentSheet['H{}'.format(self.array.index(item)+2)] = item.productGroups[4]
-            currentSheet['I{}'.format(self.array.index(item)+2)] = item.productGroups[5]
-        excelFile.save('Output\\' + filename + '.xlsx')
+        excelFile = openpyxl.Workbook()                 # Создаем файл
+        currentSheet = excelFile.active                 # Получаем активную вкладку
+        currentSheet.title = 'Список товаров'           # Переименовываем ее
+        self.__setMainInfo(currentSheet)                # Запускаем метод заполнения таблицы основными данными
+        excelFile.save('Output\\' + filename + '.xlsx') # Сохраняем таблицу в каталоге Output
     def saveToDetailedTable(self, filename):
         # Метод создает подробную таблицу со всеми данными о SKU. Работает только с гомогенными наборами
         if not self.isHomogenous(): raise TypeError('Для сохранения в подробную таблицу набор должен быть гомогенным!')
-        excelFile = openpyxl.Workbook()
-        currentSheet = excelFile.active
-        currentSheet.title = self.type
-        for i in range(len(SKUList.BASIC_TABLE_HEADERS)):
-            currentSheet['{}1'.format(openpyxl.utils.get_column_letter(i+1))] = SKUList.BASIC_TABLE_HEADERS[i]
+        excelFile = openpyxl.Workbook()                 # Создаем файл
+        currentSheet = excelFile.active                 # Получаем активную вкладку
+        currentSheet.title = self.type                  # Переименовываем ее
+        self.__setMainInfo(currentSheet)                # Запускаем метод заполнения таблицы основными данными
+        # Проставляем заголовки свойст
         i = 0
         for property in self.propertyFields:
             i += 1
-            currentSheet['{}1'.format(openpyxl.utils.get_column_letter(len(SKUList.BASIC_TABLE_HEADERS) + i))] = property
+            currentSheet['{}1'.format(colLetter(len(SKUList.BASIC_TABLE_HEADERS) + i))] = property
+        # Заполняем свойства для каждого SKU
         for item in self.array:
-            number = self.array.index(item)+2
-            currentSheet['A{}'.format(number)] = item.article
-            currentSheet['B{}'.format(number)] = item.genus
-            currentSheet['C{}'.format(number)] = item.brand
-            currentSheet['D{}'.format(number)] = item.model
-            currentSheet['E{}'.format(number)] = item.productGroups[1]
-            currentSheet['F{}'.format(number)] = item.productGroups[2]
-            currentSheet['G{}'.format(number)] = item.productGroups[3]
-            currentSheet['H{}'.format(number)] = item.productGroups[4]
-            currentSheet['I{}'.format(number)] = item.productGroups[5]
-            letter = len(SKUList.BASIC_TABLE_HEADERS)
+            number = self.array.index(item)+2           # Номер строки
+            letter = len(SKUList.BASIC_TABLE_HEADERS)   # Номер колонки
             for property in self.propertyFields:
                 letter += 1
                 currentSheet['{}{}'.format(colLetter(letter), number)] = item.properties[property]
-        excelFile.save('Output\\' + filename + '.xlsx')
-
+        excelFile.save('Output\\' + filename + '.xlsx') # Сохраняем таблицу в каталоге Output
 # ========== Перегруженные методы ==========
     def __str__(self):
         # Метод строкового представления объекта списка товаров
