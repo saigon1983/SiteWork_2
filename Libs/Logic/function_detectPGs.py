@@ -3,7 +3,7 @@
 from configobj import ConfigObj
 TGS = ConfigObj('DataFolder\\tradeGroupsTree.ini')
 
-# Версия 1.4
+# Версия 1.4.2
 
 def detectPG(sku):
     # Функция принимает на вход тип прибора и пытается вернуть ТГ2 и соответствующую ей ТГ1, если ТГ2 или ТГ1 однозначно
@@ -201,6 +201,9 @@ def detectPG(sku):
         elif 'фильтр' in skuType:
             TG1 = 'Пылесосы'
             TG2 = 'Расходные материалы'
+        elif 'затвор' in skuType:
+            TG1 = 'Пылесосы'
+            TG2 = 'Аксессуары'
     else:
         TG1 = askTG(list(TGS))
         TG2 = askTG(list(TGS[TG1]))
