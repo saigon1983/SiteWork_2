@@ -104,7 +104,6 @@ class SKU:
         for someSKU in database:
             if someSKU.article == self.article:
                 self.setupProperties(someSKU.properties)
-
 # ========== Методы доступа к атрибутам объекта ==========
     def getName(self):
         # Метод возвращает традиционное написание продукта в виде <Тип продукта Бренд Модель>
