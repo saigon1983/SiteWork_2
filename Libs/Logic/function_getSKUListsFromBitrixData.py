@@ -5,7 +5,8 @@ from Libs.Logic.class_Database import Database
 from Libs.Logic.class_SKU import SKU
 from Libs.Logic.class_SKUList import SKUList
 
-DATABASE = Database().loadDatabase()
+DATABASE = Database().constructDatabase()
+DATABASE.saveDatabase()
 
 def getSKUListsFromBitrixData(bitrixFile):
     incomeData = parseBitrixData(bitrixFile)# Парсим файл данных
