@@ -7,14 +7,14 @@ class Database(SKUList):
     def __init__(self):
         # Конструктор создает пустой класс
         super().__init__()
-    def saveDatabase(self):
+    def saveDatabase(self, databasepath = 'Database\\database.db'):
         # Метод записи сохраняет все данные класса в файл database.db
-        with open('Database\\database.db', 'wb') as databaseFile:
+        with open(databasepath, 'wb') as databaseFile:
             pickle.dump(self, databaseFile)
     @classmethod
-    def loadDatabase(cls):
+    def loadDatabase(cls, databasepath = 'Database\\database.db'):
         # Метод загрузки возвращает готовую базу данных на основе файла database.db
-        with open('Database\\database.db', 'rb') as databaseFile:
+        with open(databasepath, 'rb') as databaseFile:
             DB = pickle.load(databaseFile)
         return DB
     @classmethod

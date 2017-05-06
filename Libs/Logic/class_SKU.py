@@ -30,8 +30,10 @@ class SKU:
         productModel    = ''    # Модель
         for brandName in AVAILABLE_BRANDS:
             if brandName in currentName:
-                productBrand = fixBrandNames(brandName)                         # Правим и фиксируем бренд
-                productGenus, productModel = currentName.split(brandName + ' ') # Получаем кортеж из типа прибора и модели
+                productBrand = fixBrandNames(brandName)         # Правим и фиксируем бренд
+                splitted = currentName.split(brandName + ' ')   # Получаем кортеж из типа прибора и модели
+                productGenus = splitted[0]                      # Тип прибора
+                productModel = " ".join(splitted[1:])           # Модель прибора
         # Производим проверку написания бренда
         if productBrand not in CAPS_BRANDS: productBrand = productBrand.title()
         # Производим установку атрибутов экземпляр
@@ -76,23 +78,25 @@ class SKU:
             key = self.productGroups[2]
             if self.productGroups[1] == 'Встраиваемая техника': key += ' ВСТР'
             for value in PROPERTIES_DATA[key].values():
-                if type(value) == str:
-                    self.properties[value] = ''
-                else:
-                    for subvalue in value:
-                        self.properties[subvalue] = ''
+                if value != '0':
+                    if type(value) == str:
+                        self.properties[value] = ''
+                    else:
+                        for subvalue in value:
+                            self.properties[subvalue] = ''
     def setupProperties(self, properties):
         # Метод установки свойств (характеристик) продуктов
-        if self.properties:
+        if self.properties and properties:
             for key in self.properties.keys(): self.properties[key] = properties[key]
     def setupProductGroupsFromDatabase(self, database):
         # Метод установки корректных товарных групп на основе какой-либо базы данных database
         changed = False
-        for someSKU in database:
-            if someSKU.article == self.article:
-                changed = True
-                for key, value in someSKU.productGroups.items():
-                    self.productGroups[key] = value
+        if not self.productGroups[1] or not self.productGroups[2]:
+            for someSKU in database:
+                if someSKU.article == self.article:
+                    changed = True
+                    for key, value in someSKU.productGroups.items():
+                        self.productGroups[key] = value
         if changed: self.initProperties()
     def setupProductGroupsFromInput(self):
         # Метод ручной настройки товарных групп (1й и 2й) путем ручного выбора из предлагаемых вариантов
